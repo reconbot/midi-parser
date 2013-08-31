@@ -1,0 +1,28 @@
+{
+  "name": "firmata-pi",
+  "version": "0.0.1",
+  "description": "A firmata implementation for the raspberry pi's gpio",
+  "main": "firmata-pi.js",
+  "scripts": {
+    "test": "./node_modules/.bin/nodeunit test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/reconbot/firmata-pi.git"
+  },
+  "keywords": [
+    "firmata",
+    "raspberry",
+    "pi",
+    "johnny-five",
+    "robots"
+  ],
+  "author": "Francis Gulotta <wizard@roborooter.com>",
+  "license": "public domain",
+  "bugs": {
+    "url": "https://github.com/reconbot/firmata-pi/issues"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.8.1"
+  }
+}
