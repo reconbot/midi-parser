@@ -1,5 +1,6 @@
 firmata-pi
 =========
+[![Build Status](https://travis-ci.org/reconbot/firmata-pi.png?branch=master)](https://travis-ci.org/reconbot/firmata-pi)
 
 A firmata device implementation for the raspberry pi's gpio. Major parts of this was lifted from [node-firmata](https://github.com/jgautier/firmata).
 
