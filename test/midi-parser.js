@@ -7,42 +7,48 @@ module.exports.setUp = function (cb) {
   cb();
 };
 
-module.exports.writeSysx = function (test) {
+module.exports["write sysex"] = function (test) {
   test.expect(1);
   var message = [Parser.msg.START_SYSEX, 99, Parser.msg.END_SYSEX];
-  this.parser.on('sysx', function (data) {
-    test.deepEqual(data, [99] );
+  this.parser.on('sysex', function (data) {
+    test.deepEqual(data, [99]);
     test.done();
   });
   this.parser.write(message);
 };
 
-module.exports.writeMidi = function (test) {
-  test.expect(1);
-  var message = [1, 99, 3];
-  this.parser.on('midi', function (data) {
-    test.deepEqual(data, message);
-    test.done();
-  });
-  this.parser.write(message);
-};
-
-module.exports.writeMultiple = function (test) {
+module.exports["write midi"] = function (test) {
   test.expect(2);
-  var midiCmd = [1, 2, 3];
-  var sysxCmd = [55];
+  var message = [1, 99, 3];
+  var parser = this.parser;
 
-  this.parser.on('midi', function (data) {
-    test.deepEqual(data, midiCmd);
+  parser.on('midi', function (data) {
+    test.deepEqual(data, message);
   });
 
-  this.parser.on('sysx', function (data) {
-    test.deepEqual(data, sysxCmd);
-
-  });
-
-  var sysxMsg = [Parser.msg.START_SYSEX].concat(sysxCmd).concat([Parser.msg.END_SYSEX]);
-  var message = midiCmd.concat(sysxMsg);
-  this.parser.write(message);
+  parser.write(message);
+  test.equal(parser.buffer.length, 0);
   test.done();
 };
+
+module.exports["encodeString"] = function (test) {
+  var message = "abc";
+  var encoded_message = new Buffer([ 97, 0, 98, 0, 99, 0 ]);
+  test.deepEqual(Parser.encodeString(message), encoded_message);
+  test.done();
+};
+
+module.exports["decodeString"] = function (test) {
+  var message = "xyz";
+  var encoded_message = new Buffer([ 120, 0, 121, 0, 122, 0 ]);
+  test.deepEqual(Parser.decodeString(encoded_message), message);
+  test.done();
+};
+
+module.exports["decodeString with skip bytes"] = function (test) {
+  var message = "xyz";
+  var encoded_message = new Buffer([ 72, 88, 120, 0, 121, 0, 122, 0 ]);
+  test.deepEqual(Parser.decodeString(encoded_message, 2), message);
+  test.done();
+};
+
