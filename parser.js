@@ -79,9 +79,9 @@ Parser.encodeString = function (buffer) {
   return new Buffer(encoded);
 };
 
-Parser.decodeString = function (buffer, start) {
+Parser.decodeString = function (buffer) {
   var decoded = [];
-  for (var i = (start || 0); i < buffer.length - 1; i += 2) {
+  for (var i = 0; i < buffer.length - 1; i += 2) {
     var _char = (buffer[i] & 0x7F) | (buffer[i + 1] << 7);
     decoded.push(_char);
   }

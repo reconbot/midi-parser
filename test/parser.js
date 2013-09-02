@@ -44,11 +44,3 @@ module.exports["decodeString"] = function (test) {
   test.deepEqual(Parser.decodeString(encoded_message), message);
   test.done();
 };
-
-module.exports["decodeString with skip bytes"] = function (test) {
-  var message = "xyz";
-  var encoded_message = new Buffer([ 72, 88, 120, 0, 121, 0, 122, 0 ]);
-  test.deepEqual(Parser.decodeString(encoded_message, 2), message);
-  test.done();
-};
-
