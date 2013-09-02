@@ -26,17 +26,43 @@ Parser.prototype.writeByte = function (byt) {
   var last = this.buffer.length - 1;
   var starts_sysex = this.buffer[0] === msg.START_SYSEX;
   var ends_sysex = this.buffer[last] === msg.END_SYSEX;
+  var last_is_command = this.buffer[last] >= 128;
 
+  // if were not recieveing a command byte as the begining of our buffer
+  // we've probably lost it someplace and we should wait for the next command
+  if (this.buffer.length === 1 && !last_is_command) {
+    this.buffer.length = 0;
+    return;
+  }
+
+  // Woo it's a full sysex command!
   if (starts_sysex && ends_sysex) {
     this.emit('sysex', this.buffer.slice(1, -1));
     this.buffer.length = 0;
     return;
   }
 
-  if (!starts_sysex && this.buffer.length === 3) {
+  // Let's move on the exciting parts are still to come
+  if (starts_sysex) {
+    return;
+  }
+
+  // if we have 3 bytes we have a midi message
+  if (this.buffer.length === 3) {
     this.emit('midi', this.buffer.slice());
     this.buffer.length = 0;
+    return;
   }
+
+  // If we recieve another status message (msb == 1) while one is in the buffer
+  // emit the message and flush the buffer execept the last
+  if (this.buffer.length > 1 && last_is_command) {
+    this.emit('midi', this.buffer.slice(0, -1));
+    this.buffer.length = 1;
+    this.buffer[0] = byt;
+    return;
+  }
+
 };
 
 Parser.encodeString = function (buffer) {

@@ -19,7 +19,7 @@ module.exports["write sysex"] = function (test) {
 
 module.exports["write midi"] = function (test) {
   test.expect(2);
-  var message = [1, 99, 3];
+  var message = [ 188, 120, 0 ]; // All Sound Off
   var parser = this.parser;
 
   parser.on('midi', function (data) {
