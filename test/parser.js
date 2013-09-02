@@ -1,4 +1,4 @@
-var Parser = require('../midi-parser');
+var Parser = require('../parser');
 
 var msg = Parser.msg;
 

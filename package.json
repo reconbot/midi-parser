@@ -1,30 +1,26 @@
 {
-  "name": "firmata-pi",
+  "name": "midi-parser",
   "version": "0.0.1",
-  "description": "A firmata implementation for the raspberry pi's gpio",
-  "main": "firmata-pi.js",
+  "description": "A node js midi data parser that blisfully ignores all hardware and networking.",
+  "main": "parser.js",
   "scripts": {
     "test": "./node_modules/.bin/nodeunit test"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/reconbot/firmata-pi.git"
+    "url": "git://github.com/reconbot/midi-parser.git"
   },
   "keywords": [
-    "firmata",
-    "raspberry",
-    "pi",
-    "johnny-five",
-    "robots"
+    "midi",
+    "midi-parser"
   ],
   "author": "Francis Gulotta <wizard@roborooter.com>",
   "license": "public domain",
   "bugs": {
-    "url": "https://github.com/reconbot/firmata-pi/issues"
+    "url": "https://github.com/reconbot/midi-parser/issues"
   },
   "devDependencies": {
     "nodeunit": "~0.8.1",
-    "firmata": "~0.2.9",
     "sinon": "~1.7.3"
   }
 }
