@@ -1,38 +1,45 @@
 var FirmataPi = require('../firmata-pi');
 var Parser = require('../midi-parser');
+var sinon = require('sinon');
 
 module.exports['Report Versions On Startup'] = function (test) {
+  var firmata = sinon.spy(FirmataPi.prototype, 'emitFirmataVersion');
+  var firmware = sinon.spy(FirmataPi.prototype, 'emitFirmwareVersion');
+
   var board = new FirmataPi();
-  var parser = new Parser();
 
-  var firmataVersion;
-  var firmwareVersion;
-  var calls = 0;
+  test.ok(firmata.calledOnce);
+  test.ok(firmware.calledOnce);
 
-  parser.once('midi', function (data) {
-    firmataVersion = data;
-    calls += 1;
-    test.equal(calls, 1, 'Firmata reported first');
-  });
+  firmata.restore();
+  firmware.restore();
+  test.done();
+};
 
-  parser.once('sysex', function (data) {
-    firmwareVersion = data;
-    calls += 1;
-    test.equal(calls, 2, 'Firmware reported second');
-  });
+module.exports['emitFirmataVersion'] = function (test) {
+  var board = new FirmataPi();
+  board.read(); // clear the read queue
+  test.equal(board.read(), null); // ensure it's clear
 
-  parser.write(board.read());
+  board.emitFirmataVersion();
+  var version = board.read();
+  test.deepEqual(version, Buffer([249, 2, 3]), 'Firmata Version 0.1');
+  test.done();
+};
 
-  test.equal(firmataVersion[0], 249, 'Firmata Version CMD');
-  test.equal(firmataVersion[1], 2, 'Firmata Version Major');
-  test.equal(firmataVersion[2], 3, 'Firmata Version Minor');
+module.exports['emitFirmwareVersion'] = function (test) {
+  var board = new FirmataPi();
+  board.read(); // clear the read queue
+  test.equal(board.read(), null); // ensure it's clear
 
-  test.equal(firmwareVersion[0], 121, 'Firmware Version SYSEX CMD');
-  test.equal(firmwareVersion[1], 0, 'Firmware Version Major');
-  test.equal(firmwareVersion[2], 1, 'Firmware Version Minor');
+  board.emitFirmwareVersion();
+  var version = board.read();
 
-  var name = Parser.decodeString(firmwareVersion, 3);
+  // ignore the first byte sysex start
+  test.deepEqual(version.slice(1, 4), Buffer([121, 0, 1]), 'Firmware Version 0.1');
+
+  // ignore the last byte sysex end
+  var name = Parser.decodeString(version.slice(4, -1));
   test.equal(name, "FirmataPi", "Firmware Name");
-
   test.done();
 };

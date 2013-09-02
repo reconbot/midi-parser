@@ -15,16 +15,18 @@ var FirmataPi = module.exports = function (opt) {
 
 util.inherits(FirmataPi, Duplex);
 
+module.exports.Parser = Parser;
+
 var msg = FirmataPi.msg = {
-  START_SYSEX: 240, // 0xF0,
   REPORT_FIRMWARE: 121, //0x79
   FIRMWARE_MAJOR: 0,
   FIRMWARE_MINOR: 1,
-  END_SYSEX: 247, //0xF7
   REPORT_VERSION: 249, //0xF9
   FIRMATA_VERSION_MAJOR: 2,
   FIRMATA_VERSION_MINOR: 3
 };
+
+util._extend(msg, Parser.msg);
 
 FirmataPi.prototype._read = function (size) {
   // start reading

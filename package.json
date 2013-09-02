@@ -23,6 +23,8 @@
     "url": "https://github.com/reconbot/firmata-pi/issues"
   },
   "devDependencies": {
-    "nodeunit": "~0.8.1"
+    "nodeunit": "~0.8.1",
+    "firmata": "~0.2.9",
+    "sinon": "~1.7.3"
   }
 }
