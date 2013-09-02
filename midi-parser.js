@@ -47,15 +47,15 @@ Parser.prototype.writeByte = function (byt) {
     return;
   }
 
-  // if we have 3 bytes we have a midi message
+  // if we have 3 bytes we have a midi command
   if (this.buffer.length === 3) {
     this.emit('midi', this.buffer.slice());
     this.buffer.length = 0;
     return;
   }
 
-  // If we recieve another status message (msb == 1) while one is in the buffer
-  // emit the message and flush the buffer execept the last
+  // If we recieve another command byte (msb == 1) while one is in the buffer
+  // emit the command and flush the buffer execept the last
   if (this.buffer.length > 1 && last_is_command) {
     this.emit('midi', this.buffer.slice(0, -1));
     this.buffer.length = 1;
