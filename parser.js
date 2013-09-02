@@ -13,6 +13,11 @@ var msg = Parser.msg = {
   END_SYSEX: 247 //0xF7
 };
 
+// Show
+function isSystemRealTimeByte(byt) {
+  return byt >= 0xF8 && byt <= 0xFF;
+}
+
 Parser.prototype.write = function (data) {
   for (var i = 0; i < data.length; i++) {
     var byt = data[i];
@@ -21,6 +26,11 @@ Parser.prototype.write = function (data) {
 };
 
 Parser.prototype.writeByte = function (byt) {
+
+  if (isSystemRealTimeByte(byt)) {
+    return this.emitMidi([byt]);
+  }
+
   this.buffer.push(byt);
 
   var last = this.buffer.length - 1;
@@ -50,7 +60,7 @@ Parser.prototype.writeByte = function (byt) {
   // If we recieve another command byte (msb == 1) while one is in the buffer
   // emit the command and flush the buffer execept the last
   if (this.buffer.length > 1 && last_is_command) {
-    this.emit('midi', this.buffer.slice(0, -1));
+    this.emitMidi(this.buffer.slice(0, -1));
     this.buffer.length = 1;
     this.buffer[0] = byt;
     return;
@@ -58,11 +68,15 @@ Parser.prototype.writeByte = function (byt) {
 
   // if we have 3 bytes we have a midi command
   if (this.buffer.length === 3) {
-    this.emit('midi', this.buffer.slice());
+    this.emitMidi(this.buffer.slice());
     this.buffer.length = 0;
     return;
   }
 
+};
+
+Parser.prototype.emitMidi = function (byt) {
+  this.emit('midi', byt);
 };
 
 Parser.encodeString = function (buffer) {
