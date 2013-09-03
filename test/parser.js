@@ -112,8 +112,8 @@ describe["midi channel voice messages"] = function (test) {
 };
 
 describe["midi channel voice messages with 1 data byte"] = function (test) {
-  var noteOnChanAT = msg.chanAT + 2;
-  var packet = [noteOnChanAT, 0];
+  var chanPressure2 = msg.chanPressure + 2;
+  var packet = [chanPressure2, 0];
   var spy = sinon.spy();
   test.expect(1);
   this.parser.on('midi', spy);

@@ -15,7 +15,7 @@ var msg = Parser.msg = {
   polyAT: 0xA0,
   ctrlChg: 0xB0,
   progChg: 0xC0,
-  chanAT: 0xD0,
+  chanPressure: 0xD0,
   pitchBnd: 0xE0,
   startSysex: 0xF0, // 240
   endSysex: 0xF7, // 247
@@ -37,7 +37,7 @@ msgLength[msg.noteOn]   = 2;
 msgLength[msg.polyAT]   = 2;
 msgLength[msg.ctrlChg]  = 2;
 msgLength[msg.progChg]  = 1;
-msgLength[msg.chanAT]   = 1;
+msgLength[msg.chanPressure]   = 1;
 msgLength[msg.pitchBnd] = 2;
 
 function dataLength(cmd) {
