@@ -40,8 +40,12 @@ msgLength[msg.progChg]  = 1;
 msgLength[msg.chanPressure]   = 1;
 msgLength[msg.pitchBnd] = 2;
 
+function channelCmd(byt) {
+  return byt >= 0x80 && byt <= 0xEF;
+}
+
 function dataLength(cmd) {
-  if (channelCmd(cmd)){
+  if (channelCmd(cmd)) {
     cmd = cmd & 0xF0;
   }
   var length = msgLength[cmd];
@@ -50,10 +54,6 @@ function dataLength(cmd) {
     length = 2;
   }
   return length;
-}
-
-function channelCmd(byt) {
-  return byt >= 0x80 && byt <= 0xEF;
 }
 
 function systemRealTimeByte(byt) {
@@ -102,13 +102,6 @@ Parser.prototype.writeByte = function (byt) {
       this.buffer.length = 0;
     }
 
-  }
-
-  // If we recieve another command byte while in a command
-  // emit the command and flush the buffer TODO: FIX HACK
-  if (this.buffer.length > 1 && commandByte(byt)) {
-    this.emitMidi(this.buffer.slice());
-    this.buffer.length = 0;
   }
 
   this.buffer.push(byt);
