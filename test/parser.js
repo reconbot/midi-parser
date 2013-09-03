@@ -3,7 +3,7 @@ var sinon = require('sinon');
 var msg = Parser.msg;
 
 var soundOff = [ 188, 120, 0 ]; // All Sound Off
-var systemReset = [ 0xFF ];
+var systemReset = [ 0xFF ]; // System Realtime Command
 
 module.exports.setUp = function (cb) {
   this.parser = new Parser();
@@ -22,7 +22,17 @@ describe["#emitMidi"] = function (test) {
 };
 
 describe["sysex command"] = function (test) {
-  var message = [msg.START_SYSEX, 99, msg.END_SYSEX];
+  var message = [msg.startSysex, 99, msg.endSysex];
+  var spy = sinon.spy();
+  test.expect(1);
+  this.parser.on('sysex', spy);
+  this.parser.write(message);
+  test.ok(spy.calledWith([99]), "sysex command emitted");
+  test.done();
+};
+
+describe["sysex command during command"] = function (test) {
+  var message = [msg.startSysex, msg.startSysex, 99, msg.endSysex];
   var spy = sinon.spy();
   test.expect(1);
   this.parser.on('sysex', spy);
@@ -44,7 +54,7 @@ describe["Command during a Sysex Command clears current Sysex"] = function (test
   var spy = sinon.spy();
   test.expect(1);
   this.parser.on('midi', spy);
-  this.parser.write([msg.START_SYSEX]);
+  this.parser.write([msg.startSysex]);
   this.parser.write(soundOff);
   test.ok(spy.calledWith(soundOff), "midi command emitted");
   test.done();
@@ -55,7 +65,7 @@ describe["midi System Realtime Commands emit immediately"] = function (test) {
   test.expect(1);
   this.parser.on('midi', spy);
   this.parser.write(systemReset);
-  test.deepEqual(spy.getCall(0).args[0], systemReset, 'realtime command emited');
+  test.ok(spy.calledWith(systemReset), 'realtime command emited');
   test.done();
 };
 
@@ -64,7 +74,7 @@ describe["midi System Realtime Commands emit during sysex"] = function (test) {
   test.expect(2);
   this.parser.on('midi', spy);
   this.parser.on('sysex', spy);
-  this.parser.write([msg.START_SYSEX, systemReset[0], 99, msg.END_SYSEX]);
+  this.parser.write([msg.startSysex, systemReset[0], 99, msg.endSysex]);
   test.deepEqual(spy.getCall(0).args[0], systemReset, 'realtime command emited');
   test.deepEqual(spy.getCall(1).args[0], [99], 'sysex command emited');
   test.done();
@@ -78,6 +88,15 @@ describe["midi System Realtime Commands emit during midi"] = function (test) {
   this.parser.write(mixed);
   test.deepEqual(spy.getCall(0).args[0], systemReset, 'realtime command emited');
   test.deepEqual(spy.getCall(1).args[0], soundOff, 'midi command emited');
+  test.done();
+};
+
+describe["midi single byte commands"] = function (test) {
+  var spy = sinon.spy();
+  test.expect(1);
+  this.parser.on('midi', spy);
+  this.parser.write([msg.tuneReq]); // [0xF6]
+  test.ok(spy.calledWith([msg.tuneReq]), "Single byte command emitted");
   test.done();
 };
 

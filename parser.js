@@ -8,10 +8,46 @@ var Parser = module.exports = function () {
 
 util.inherits(Parser, events.EventEmitter);
 
+// Commands that have names that we care about
 var msg = Parser.msg = {
-  START_SYSEX: 240, // 0xF0,
-  END_SYSEX: 247 //0xF7
+  startSysex: 0xF0, // 240
+  endSysex: 0xF7, // 247
+  timeCode: 0xF1, // 241
+  songPos: 0xF2,
+  songSel: 0xF3,
+  tuneReq: 0xF6,
+  noteOff: 0x80,
+  noteOn: 0x90,
+  polyAT: 0xA0,
+  ctrlChg: 0xB0,
+  progChg: 0xC0,
+  chanAT: 0xD0,
+  pitchBnd: 0xE0
 };
+
+// Commands that have a specified lengths for their data
+// I wish there were actual rules around this
+var msgLength = Parser.msgLength = {};
+msgLength[msg.timeCode] = 1;
+msgLength[msg.songPos]  = 2;
+msgLength[msg.songSel]  = 1;
+msgLength[msg.tuneReq]  = 0;
+msgLength[msg.noteOff]  = 2;
+msgLength[msg.noteOn]   = 2;
+msgLength[msg.polyAT]   = 2;
+msgLength[msg.ctrlChg]  = 2;
+msgLength[msg.progChg]  = 1;
+msgLength[msg.chanAT]   = 1;
+msgLength[msg.pitchBnd] = 2;
+
+function dataLength(cmd) {
+  var length = msgLength[cmd];
+  // if we don't know how many data bytes we need assume 2
+  if (length === undefined) {
+    length = 2;
+  }
+  return length;
+}
 
 function systemRealTimeByte(byt) {
   return byt >= 0xF8 && byt <= 0xFF;
@@ -40,9 +76,9 @@ Parser.prototype.writeByte = function (byt) {
     return;
   }
 
-  if (this.buffer[0] === msg.START_SYSEX) {
+  if (this.buffer[0] === msg.startSysex) {
     // emit commands
-    if (byt === msg.END_SYSEX) {
+    if (byt === msg.endSysex) {
       this.emit('sysex', this.buffer.slice(1));
       this.buffer.length = 0;
       return;
@@ -62,7 +98,7 @@ Parser.prototype.writeByte = function (byt) {
   }
 
   // If we recieve another command byte while in a command
-  // emit the command and flush the buffer TODO HACK
+  // emit the command and flush the buffer TODO: FIX HACK
   if (this.buffer.length > 1 && commandByte(byt)) {
     this.emitMidi(this.buffer.slice());
     this.buffer.length = 0;
@@ -70,8 +106,8 @@ Parser.prototype.writeByte = function (byt) {
 
   this.buffer.push(byt);
 
-  // if we have 3 bytes we have a midi command
-  if (this.buffer.length === 3) {
+  // once we have enough data bytes emit the cmd
+  if (dataLength(this.buffer[0]) === (this.buffer.length - 1)) {
     this.emitMidi(this.buffer.slice());
     this.buffer.length = 0;
     return;

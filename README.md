@@ -4,7 +4,7 @@
 
 This is a work in progress.
 
-I needed to decode midi data for [FirmataPi](https://github.com/reconbot/firmata-pi). I learned a lot from [node-firmata](https://github.com/jgautier/firmata), [Essentials of the MIDI protocol](https://ccrma.stanford.edu/~craig/articles/linuxmidi/misc/essenmidi.html) and [Control Systems for Live Entertainment](http://www.amazon.com/Control-Systems-Live-Entertainment-Huntington/dp/0240809378) which is a great book.
+I needed to decode midi data for [FirmataPi](https://github.com/reconbot/firmata-pi). I learned a lot from [node-firmata](https://github.com/jgautier/firmata), [Essentials of the MIDI protocol](https://ccrma.stanford.edu/~craig/articles/linuxmidi/misc/essenmidi.html) and [Control Systems for Live Entertainment](http://www.amazon.com/Control-Systems-Live-Entertainment-Huntington/dp/0240809378) which is a great book, and this nice little C library [Miby: MIDI Byte-stream Parser](https://code.google.com/p/miby/) based off the MIDI 1.0 spec.
 
 The midi-parser library is a node event emitter. You write midi commands in buffers and it emits both `midi` and `sysex` events.
 
