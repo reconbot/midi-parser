@@ -2,8 +2,6 @@
 
 [![Build Status](https://travis-ci.org/reconbot/midi-parser.png?branch=master)](https://travis-ci.org/reconbot/midi-parser)
 
-##This is a work in progress.
-
 ##Why
 I needed to decode midi data for [FirmataPi](https://github.com/reconbot/firmata-pi). I learned a lot from [node-firmata](https://github.com/jgautier/firmata), [Essentials of the MIDI protocol](https://ccrma.stanford.edu/~craig/articles/linuxmidi/misc/essenmidi.html) and [Control Systems for Live Entertainment](http://www.amazon.com/Control-Systems-Live-Entertainment-Huntington/dp/0240809378) which is a great book, and this nice little C library [Miby: MIDI Byte-stream Parser](https://code.google.com/p/miby/) based off the MIDI 1.0 spec.
 
