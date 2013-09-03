@@ -13,9 +13,12 @@ var msg = Parser.msg = {
   END_SYSEX: 247 //0xF7
 };
 
-// Show
-function isSystemRealTimeByte(byt) {
+function systemRealTimeByte(byt) {
   return byt >= 0xF8 && byt <= 0xFF;
+}
+
+function commandByte(byt) {
+  return byt >= 128;
 }
 
 Parser.prototype.write = function (data) {
@@ -27,44 +30,45 @@ Parser.prototype.write = function (data) {
 
 Parser.prototype.writeByte = function (byt) {
 
-  if (isSystemRealTimeByte(byt)) {
+  if (systemRealTimeByte(byt)) {
     return this.emitMidi([byt]);
   }
 
+  // if were not in a command and we recieve data we've probably lost
+  // it someplace and we should wait for the next command
+  if (this.buffer.length === 0 && !commandByte(byt)) {
+    return;
+  }
+
+  if (this.buffer[0] === msg.START_SYSEX) {
+    // emit commands
+    if (byt === msg.END_SYSEX) {
+      this.emit('sysex', this.buffer.slice(1));
+      this.buffer.length = 0;
+      return;
+    }
+
+    // Store data
+    if (!commandByte(byt)) {
+      return this.buffer.push(byt);
+    }
+
+
+    // Clear the buffer if another non realtime command was started
+    if (commandByte(byt)) {
+      this.buffer.length = 0;
+    }
+
+  }
+
+  // If we recieve another command byte while in a command
+  // emit the command and flush the buffer TODO HACK
+  if (this.buffer.length > 1 && commandByte(byt)) {
+    this.emitMidi(this.buffer.slice());
+    this.buffer.length = 0;
+  }
+
   this.buffer.push(byt);
-
-  var last = this.buffer.length - 1;
-  var starts_sysex = this.buffer[0] === msg.START_SYSEX;
-  var ends_sysex = this.buffer[last] === msg.END_SYSEX;
-  var last_is_command = this.buffer[last] >= 128;
-
-  // if were not recieveing a command byte as the begining of our buffer
-  // we've probably lost it someplace and we should wait for the next command
-  if (this.buffer.length === 1 && !last_is_command) {
-    this.buffer.length = 0;
-    return;
-  }
-
-  // Woo it's a full sysex command!
-  if (starts_sysex && ends_sysex) {
-    this.emit('sysex', this.buffer.slice(1, -1));
-    this.buffer.length = 0;
-    return;
-  }
-
-  // Let's move on the exciting parts are still to come
-  if (starts_sysex) {
-    return;
-  }
-
-  // If we recieve another command byte (msb == 1) while one is in the buffer
-  // emit the command and flush the buffer execept the last
-  if (this.buffer.length > 1 && last_is_command) {
-    this.emitMidi(this.buffer.slice(0, -1));
-    this.buffer.length = 1;
-    this.buffer[0] = byt;
-    return;
-  }
 
   // if we have 3 bytes we have a midi command
   if (this.buffer.length === 3) {
