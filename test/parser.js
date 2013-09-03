@@ -122,10 +122,24 @@ describe["midi channel voice messages with 1 data byte"] = function (test) {
   test.done();
 };
 
+describe[".encodeValue"] = function (test) {
+  var message = new Buffer([245, 0, 1, 128]);
+  var encoded_message = new Buffer([ 117, 1, 0, 0, 1, 0, 0, 1 ]);
+  test.deepEqual(Parser.encodeValue(message), encoded_message);
+  test.done();
+};
+
 describe[".encodeString"] = function (test) {
   var message = "abc";
   var encoded_message = new Buffer([ 97, 0, 98, 0, 99, 0 ]);
   test.deepEqual(Parser.encodeString(message), encoded_message);
+  test.done();
+};
+
+describe[".decodeValue"] = function (test) {
+  var message = new Buffer([120, 121, 122, 254]);
+  var encoded_message = new Buffer([ 120, 0, 121, 0, 122, 0, 126, 1 ]);
+  test.deepEqual(Parser.decodeValue(encoded_message), message);
   test.done();
 };
 

@@ -119,12 +119,8 @@ Parser.prototype.emitMidi = function (byt) {
   this.emit('midi', byt);
 };
 
-Parser.encodeString = function (buffer) {
+Parser.encodeValue = function (buffer) {
   var encoded = [];
-  if (typeof buffer === 'string') {
-    buffer = new Buffer(buffer, 'ascii');
-  }
-
   for (var i = 0; i < buffer.length; i += 1) {
     encoded.push(buffer[i] & 0x7F); // The bottom 7 bits of the byte LSB
     encoded.push(buffer[i] >> 7 & 0x7F); // The top 1 bit of the byte MSB
@@ -133,11 +129,23 @@ Parser.encodeString = function (buffer) {
   return new Buffer(encoded);
 };
 
-Parser.decodeString = function (buffer) {
+Parser.encodeString = function (buffer) {
+  var encoded = [];
+  if (typeof buffer === 'string') {
+    buffer = new Buffer(buffer, 'ascii');
+  }
+  return Parser.encodeValue(buffer);
+};
+
+Parser.decodeValue = function (buffer) {
   var decoded = [];
   for (var i = 0; i < buffer.length - 1; i += 2) {
     var _char = (buffer[i] & 0x7F) | (buffer[i + 1] << 7);
     decoded.push(_char);
   }
-  return new Buffer(decoded).toString('ascii');
+  return new Buffer(decoded);
+};
+
+Parser.decodeString = function (buffer) {
+  return Parser.decodeValue(buffer).toString('ascii');
 };
