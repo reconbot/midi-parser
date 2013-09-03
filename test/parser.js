@@ -100,6 +100,28 @@ describe["midi single byte commands"] = function (test) {
   test.done();
 };
 
+describe["midi channel voice messages"] = function (test) {
+  var noteOnChan2 = msg.noteOn + 2;
+  var packet = [noteOnChan2, 0, 0];
+  var spy = sinon.spy();
+  test.expect(1);
+  this.parser.on('midi', spy);
+  this.parser.write(packet);
+  test.ok(spy.calledWith(packet), "Channel voice message");
+  test.done();
+};
+
+describe["midi channel voice messages with 1 data byte"] = function (test) {
+  var noteOnChanAT = msg.chanAT + 2;
+  var packet = [noteOnChanAT, 0];
+  var spy = sinon.spy();
+  test.expect(1);
+  this.parser.on('midi', spy);
+  this.parser.write(packet);
+  test.ok(spy.calledWith(packet), "Channel voice message");
+  test.done();
+};
+
 describe[".encodeString"] = function (test) {
   var message = "abc";
   var encoded_message = new Buffer([ 97, 0, 98, 0, 99, 0 ]);

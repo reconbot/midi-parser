@@ -10,19 +10,19 @@ util.inherits(Parser, events.EventEmitter);
 
 // Commands that have names that we care about
 var msg = Parser.msg = {
-  startSysex: 0xF0, // 240
-  endSysex: 0xF7, // 247
-  timeCode: 0xF1, // 241
-  songPos: 0xF2,
-  songSel: 0xF3,
-  tuneReq: 0xF6,
   noteOff: 0x80,
   noteOn: 0x90,
   polyAT: 0xA0,
   ctrlChg: 0xB0,
   progChg: 0xC0,
   chanAT: 0xD0,
-  pitchBnd: 0xE0
+  pitchBnd: 0xE0,
+  startSysex: 0xF0, // 240
+  endSysex: 0xF7, // 247
+  timeCode: 0xF1, // 241
+  songPos: 0xF2,
+  songSel: 0xF3,
+  tuneReq: 0xF6
 };
 
 // Commands that have a specified lengths for their data
@@ -41,12 +41,19 @@ msgLength[msg.chanAT]   = 1;
 msgLength[msg.pitchBnd] = 2;
 
 function dataLength(cmd) {
+  if (channelCmd(cmd)){
+    cmd = cmd & 0xF0;
+  }
   var length = msgLength[cmd];
   // if we don't know how many data bytes we need assume 2
   if (length === undefined) {
     length = 2;
   }
   return length;
+}
+
+function channelCmd(byt) {
+  return byt >= 0x80 && byt <= 0xEF;
 }
 
 function systemRealTimeByte(byt) {
