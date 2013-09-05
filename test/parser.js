@@ -22,13 +22,22 @@ describe["#emitMidi"] = function (test) {
   test.done();
 };
 
+describe["#emitSysEx"] = function (test) {
+  var spy = sinon.spy();
+  this.parser.on('sysex', spy);
+  var message = [99, 0, 0];
+  this.parser.emitSysEx(message);
+  var called = spy.calledWith(99, [0, 0]);
+  test.ok(called, "emits the sysex command");
+  test.done();
+};
+
 describe["sysex command"] = function (test) {
   var message = [msg.startSysex, 99, msg.endSysex];
   var spy = sinon.spy();
-  test.expect(1);
   this.parser.on('sysex', spy);
   this.parser.write(message);
-  test.ok(spy.calledWith([99]), "sysex command emitted");
+  test.ok(spy.calledWith(99, []), "sysex command emitted");
   test.done();
 };
 
@@ -38,7 +47,7 @@ describe["sysex command during command"] = function (test) {
   test.expect(1);
   this.parser.on('sysex', spy);
   this.parser.write(message);
-  test.ok(spy.calledWith([99]), "sysex command emitted");
+  test.ok(spy.calledWith(99, []), "sysex command emitted");
   test.done();
 };
 
@@ -77,7 +86,7 @@ describe["midi System Realtime Commands emit during sysex"] = function (test) {
   this.parser.on('sysex', spy);
   this.parser.write([msg.startSysex, systemReset[0], 99, msg.endSysex]);
   test.ok(spy.getCall(0).calledWith(systemReset[0], null, []), 'realtime command emited');
-  test.ok(spy.getCall(1).calledWith([99]), 'sysex command emited');
+  test.ok(spy.getCall(1).calledWith(99, []), 'sysex command emited');
   test.done();
 };
 

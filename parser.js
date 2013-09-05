@@ -89,7 +89,7 @@ Parser.prototype.writeByte = function (byt) {
   if (this.buffer[0] === msg.startSysex) {
     // emit commands
     if (byt === msg.endSysex) {
-      this.emit('sysex', this.buffer.slice(1));
+      this.emitSysEx(this.buffer.slice(1));
       this.buffer.length = 0;
       return;
     }
@@ -125,6 +125,10 @@ Parser.prototype.emitMidi = function (byts) {
     return this.emit('midi', cmd, channel, byts.slice(1));
   }
   this.emit('midi', byts[0], null, byts.slice(1));
+};
+
+Parser.prototype.emitSysEx = function (byts) {
+  this.emit('sysex', byts[0], byts.slice(1));
 };
 
 Parser.encodeValue = function (buffer) {

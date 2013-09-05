@@ -7,7 +7,7 @@ I needed to decode midi data for [FirmataPi](https://github.com/reconbot/firmata
 
 The midi-parser library is a node event emitter. You write midi commands in buffers and it emits `midi` and `sysex` commands as events. We avoid releasing zalgo by always emitting events immediately.
 
-The SysEx commands are unwrapped of their header and footer bytes and provided on the `sysex` event with raw data. Since any multibyte data (eg strings) or values over 127 need to be "14 bit encoded". The class methods `decodeString` and `encodeString` are available to assist.
+The SysEx commands are unwrapped of their header and footer bytes and provided on the `sysex` event with the command, and data. Since any multibyte data (eg strings) or values over 127 need to be "14 bit encoded". The class methods `decodeString` and `encodeString` are available to assist.
 
 The Midi command are emitted on the `midi` event with command, channel (or null if N/A), and an array of data bytes.
 
