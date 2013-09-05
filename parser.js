@@ -2,6 +2,9 @@ var util = require("util");
 var events = require('events');
 
 var Parser = module.exports = function () {
+  if (!(this instanceof Parser)) {
+    return new Parser();
+  }
   events.EventEmitter.call(this);
   this.buffer = [];
 };
@@ -11,11 +14,11 @@ util.inherits(Parser, events.EventEmitter);
 // Commands that have names that we care about
 var msg = Parser.msg = {
   noteOff: 0x80,
-  noteOn: 0x90,
-  polyAT: 0xA0,
-  ctrlChg: 0xB0,
-  progChg: 0xC0,
-  chanPressure: 0xD0,
+  noteOn: 0x90, // 144
+  polyAT: 0xA0, // 160
+  ctrlChg: 0xB0, // 176
+  progChg: 0xC0, // 192
+  chanPressure: 0xD0, // 208
   pitchBnd: 0xE0,
   startSysex: 0xF0, // 240
   endSysex: 0xF7, // 247
@@ -28,17 +31,17 @@ var msg = Parser.msg = {
 // Commands that have a specified lengths for their data
 // I wish there were actual rules around this
 var msgLength = Parser.msgLength = {};
-msgLength[msg.timeCode] = 1;
-msgLength[msg.songPos]  = 2;
-msgLength[msg.songSel]  = 1;
-msgLength[msg.tuneReq]  = 0;
-msgLength[msg.noteOff]  = 2;
-msgLength[msg.noteOn]   = 2;
-msgLength[msg.polyAT]   = 2;
-msgLength[msg.ctrlChg]  = 2;
-msgLength[msg.progChg]  = 1;
-msgLength[msg.chanPressure]   = 1;
-msgLength[msg.pitchBnd] = 2;
+msgLength[msg.timeCode]     = 1;
+msgLength[msg.songPos]      = 2;
+msgLength[msg.songSel]      = 1;
+msgLength[msg.tuneReq]      = 0;
+msgLength[msg.noteOff]      = 2;
+msgLength[msg.noteOn]       = 2;
+msgLength[msg.polyAT]       = 2;
+msgLength[msg.ctrlChg]      = 2;
+msgLength[msg.progChg]      = 1;
+msgLength[msg.chanPressure] = 1;
+msgLength[msg.pitchBnd]     = 2;
 
 function channelCmd(byt) {
   return byt >= 0x80 && byt <= 0xEF;
@@ -115,8 +118,13 @@ Parser.prototype.writeByte = function (byt) {
 
 };
 
-Parser.prototype.emitMidi = function (byt) {
-  this.emit('midi', byt);
+Parser.prototype.emitMidi = function (byts) {
+  if (channelCmd(byts[0])) {
+    var cmd = byts[0] & 0xF0;
+    var channel = byts[0] & 0x0F;
+    return this.emit('midi', cmd, channel, byts.slice(1));
+  }
+  this.emit('midi', byts[0], null, byts.slice(1));
 };
 
 Parser.encodeValue = function (buffer) {
