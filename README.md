@@ -1,5 +1,7 @@
 #Midi Parser
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/reconbot/midi-parser.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/reconbot/midi-parser.png?branch=master)](https://travis-ci.org/reconbot/midi-parser)
 
 ##Why
