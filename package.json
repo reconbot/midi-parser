@@ -15,7 +15,7 @@
     "midi-parser"
   ],
   "author": "Francis Gulotta <wizard@roborooter.com>",
-  "license": "public domain",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/reconbot/midi-parser/issues"
   },
