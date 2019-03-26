@@ -1,151 +1,136 @@
-var Parser = require('../parser');
-var sinon = require('sinon');
-var msg = Parser.msg;
+const assert = require('assert')
+const Parser = require('../parser')
+const sinon = require('sinon')
+const msg = Parser.msg
 
-var soundOff = [ 188, 120, 0 ]; // All Sound Off - parsed it looks like  (176, 12, [120, 0])
-var systemReset = [ 0xFF ]; // System Realtime Command
+const soundOff = [188, 120, 0] // All Sound Off - parsed it looks like  (176, 12, [120, 0])
+const systemReset = [0xFF] // System Realtime Command
 
-module.exports.setUp = function (cb) {
-  this.parser = new Parser();
-  cb();
-};
+describe('midi-parser', () => {
+  let parser
+  beforeEach(() => {
+    parser = new Parser()
+  })
 
-var describe = module.exports;
+  it("#emitMidi", () => {
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.emitMidi(soundOff)
+    const called = spy.calledWith(176, 12, [120, 0])
+    assert.ok(called, "emits the midi command")
+  })
 
-describe["#emitMidi"] = function (test) {
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.emitMidi(soundOff);
-  var called = spy.calledWith(176, 12, [120, 0]);
-  test.ok(called, "emits the midi command");
-  test.done();
-};
+  it("#emitSysEx", () => {
+    const spy = sinon.spy()
+    parser.on('sysex', spy)
+    const message = [99, 0, 0]
+    parser.emitSysEx(message)
+    const called = spy.calledWith(99, [0, 0])
+    assert.ok(called, "emits the sysex command")
+  })
 
-describe["#emitSysEx"] = function (test) {
-  var spy = sinon.spy();
-  this.parser.on('sysex', spy);
-  var message = [99, 0, 0];
-  this.parser.emitSysEx(message);
-  var called = spy.calledWith(99, [0, 0]);
-  test.ok(called, "emits the sysex command");
-  test.done();
-};
+  it("sysex command", () => {
+    const message = [msg.startSysex, 99, msg.endSysex]
+    const spy = sinon.spy()
+    parser.on('sysex', spy)
+    parser.write(message)
+    assert.ok(spy.calledWith(99, []), "sysex command emitted")
+  })
 
-describe["sysex command"] = function (test) {
-  var message = [msg.startSysex, 99, msg.endSysex];
-  var spy = sinon.spy();
-  this.parser.on('sysex', spy);
-  this.parser.write(message);
-  test.ok(spy.calledWith(99, []), "sysex command emitted");
-  test.done();
-};
+  it("sysex command during command", () => {
+    const message = [msg.startSysex, msg.startSysex, 99, msg.endSysex]
+    const spy = sinon.spy()
+    parser.on('sysex', spy)
+    parser.write(message)
+    assert.ok(spy.calledWith(99, []), "sysex command emitted")
+  })
 
-describe["sysex command during command"] = function (test) {
-  var message = [msg.startSysex, msg.startSysex, 99, msg.endSysex];
-  var spy = sinon.spy();
-  this.parser.on('sysex', spy);
-  this.parser.write(message);
-  test.ok(spy.calledWith(99, []), "sysex command emitted");
-  test.done();
-};
+  it("midi command", () => {
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.write(soundOff)
+    assert.ok(spy.calledWith(176, 12, [120, 0]), "midi command emitted")
+  })
 
-describe["midi command"] = function (test) {
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.write(soundOff);
-  test.ok(spy.calledWith(176, 12, [120, 0]), "midi command emitted");
-  test.done();
-};
+  it("Command during a Sysex Command clears current Sysex", () => {
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.write([msg.startSysex])
+    parser.write(soundOff)
+    assert.ok(spy.calledWith(176, 12, [120, 0]), "midi command emitted")
+  })
 
-describe["Command during a Sysex Command clears current Sysex"] = function (test) {
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.write([msg.startSysex]);
-  this.parser.write(soundOff);
-  test.ok(spy.calledWith(176, 12, [120, 0]), "midi command emitted");
-  test.done();
-};
+  it("midi System Realtime Commands emit immediately", () => {
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.write(systemReset)
+    assert.ok(spy.calledWith(systemReset[0], null, []), 'realtime command emited')
+  })
 
-describe["midi System Realtime Commands emit immediately"] = function (test) {
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.write(systemReset);
-  test.ok(spy.calledWith(systemReset[0], null, []), 'realtime command emited');
-  test.done();
-};
+  it("midi System Realtime Commands emit during sysex", () => {
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.on('sysex', spy)
+    parser.write([msg.startSysex, systemReset[0], 99, msg.endSysex])
+    assert.ok(spy.getCall(0).calledWith(systemReset[0], null, []), 'realtime command emited')
+    assert.ok(spy.getCall(1).calledWith(99, []), 'sysex command emited')
+  })
 
-describe["midi System Realtime Commands emit during sysex"] = function (test) {
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.on('sysex', spy);
-  this.parser.write([msg.startSysex, systemReset[0], 99, msg.endSysex]);
-  test.ok(spy.getCall(0).calledWith(systemReset[0], null, []), 'realtime command emited');
-  test.ok(spy.getCall(1).calledWith(99, []), 'sysex command emited');
-  test.done();
-};
+  it("midi System Realtime Commands emit during midi channel", () => {
+    const spy = sinon.spy()
+    const mixed = [188, 0xFF, 120, 0]
+    parser.on('midi', spy)
+    parser.write(mixed)
+    assert.ok(spy.getCall(0).calledWith(systemReset[0], null, []), 'realtime command emited')
+    assert.ok(spy.getCall(1).calledWith(176, 12, [120, 0]), 'midi command emited')
+  })
 
-describe["midi System Realtime Commands emit during midi channel"] = function (test) {
-  var spy = sinon.spy();
-  var mixed = [ 188, 0xFF, 120, 0 ];
-  this.parser.on('midi', spy);
-  this.parser.write(mixed);
-  test.ok(spy.getCall(0).calledWith(systemReset[0], null, []), 'realtime command emited');
-  test.ok(spy.getCall(1).calledWith(176, 12, [120, 0]), 'midi command emited');
-  test.done();
-};
+  it("midi single byte commands", () => {
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.write([msg.tuneReq]) // [0xF6]
+    assert.ok(spy.calledWith(msg.tuneReq, null, []), "Single byte command emitted")
+  })
 
-describe["midi single byte commands"] = function (test) {
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.write([msg.tuneReq]); // [0xF6]
-  test.ok(spy.calledWith(msg.tuneReq, null, []), "Single byte command emitted");
-  test.done();
-};
+  it("midi channel voice messages", () => {
+    const noteOnChan2 = msg.noteOn + 2
+    const packet = [noteOnChan2, 0, 0]
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.write(packet)
+    assert.ok(spy.calledWith(msg.noteOn, 2, [0, 0]), "Channel voice message")
+  })
 
-describe["midi channel voice messages"] = function (test) {
-  var noteOnChan2 = msg.noteOn + 2;
-  var packet = [noteOnChan2, 0, 0];
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.write(packet);
-  test.ok(spy.calledWith(msg.noteOn, 2, [0, 0]), "Channel voice message");
-  test.done();
-};
+  it("midi channel voice messages with 1 data byte", () => {
+    const chanPressure2 = msg.chanPressure + 2
+    const packet = [chanPressure2, 0]
+    const spy = sinon.spy()
+    parser.on('midi', spy)
+    parser.write(packet)
+    assert.ok(spy.calledWith(msg.chanPressure, 2, [0]), "Channel voice message")
+  })
 
-describe["midi channel voice messages with 1 data byte"] = function (test) {
-  var chanPressure2 = msg.chanPressure + 2;
-  var packet = [chanPressure2, 0];
-  var spy = sinon.spy();
-  this.parser.on('midi', spy);
-  this.parser.write(packet);
-  test.ok(spy.calledWith(msg.chanPressure, 2, [0]), "Channel voice message");
-  test.done();
-};
+  it(".encodeValue", () => {
+    const message = Buffer.from([245, 0, 1, 128])
+    const encodedMessage = Buffer.from([117, 1, 0, 0, 1, 0, 0, 1])
+    assert.deepEqual(Parser.encodeValue(message), encodedMessage)
+  })
 
-describe[".encodeValue"] = function (test) {
-  var message = new Buffer([245, 0, 1, 128]);
-  var encoded_message = new Buffer([ 117, 1, 0, 0, 1, 0, 0, 1 ]);
-  test.deepEqual(Parser.encodeValue(message), encoded_message);
-  test.done();
-};
+  it(".encodeString", () => {
+    const message = "abc"
+    const encodedMessage = Buffer.from([97, 0, 98, 0, 99, 0])
+    assert.deepEqual(Parser.encodeString(message), encodedMessage)
+  })
 
-describe[".encodeString"] = function (test) {
-  var message = "abc";
-  var encoded_message = new Buffer([ 97, 0, 98, 0, 99, 0 ]);
-  test.deepEqual(Parser.encodeString(message), encoded_message);
-  test.done();
-};
+  it(".decodeValue", () => {
+    const message = Buffer.from([120, 121, 122, 254])
+    const encodedMessage = Buffer.from([120, 0, 121, 0, 122, 0, 126, 1])
+    assert.deepEqual(Parser.decodeValue(encodedMessage), message)
+  })
 
-describe[".decodeValue"] = function (test) {
-  var message = new Buffer([120, 121, 122, 254]);
-  var encoded_message = new Buffer([ 120, 0, 121, 0, 122, 0, 126, 1 ]);
-  test.deepEqual(Parser.decodeValue(encoded_message), message);
-  test.done();
-};
-
-describe[".decodeString"] = function (test) {
-  var message = "xyz";
-  var encoded_message = new Buffer([ 120, 0, 121, 0, 122, 0 ]);
-  test.deepEqual(Parser.decodeString(encoded_message), message);
-  test.done();
-};
+  it(".decodeString", () => {
+    const message = "xyz"
+    const encodedMessage = Buffer.from([120, 0, 121, 0, 122, 0])
+    assert.deepEqual(Parser.decodeString(encodedMessage), message)
+  })
+})

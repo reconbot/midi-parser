@@ -1,10 +1,10 @@
 {
   "name": "midi-parser",
   "version": "0.1.1",
-  "description": "A node js midi data parser that blisfully ignores all hardware and networking.",
+  "description": "A node js midi data parser that blissfully ignores all hardware and networking.",
   "main": "parser.js",
   "scripts": {
-    "test": "./node_modules/.bin/nodeunit test"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
     "url": "https://github.com/reconbot/midi-parser/issues"
   },
   "devDependencies": {
-    "nodeunit": "~0.8.1",
-    "sinon": "~1.7.3"
+    "mocha": "^6.0.2",
+    "sinon": "^7.3.0"
   }
 }
