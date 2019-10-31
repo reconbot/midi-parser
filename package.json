@@ -4,7 +4,8 @@
   "description": "A node js midi data parser that blissfully ignores all hardware and networking.",
   "main": "parser.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint parser.js test/parser.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
     "url": "https://github.com/reconbot/midi-parser/issues"
   },
   "devDependencies": {
+    "eslint": "^6.6.0",
     "mocha": "^6.2.2",
     "sinon": "^7.5.0"
   }
